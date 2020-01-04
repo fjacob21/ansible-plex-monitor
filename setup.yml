@@ -1,0 +1,57 @@
+---
+- hosts: server
+  vars:
+    http_port: 80
+    max_clients: 200
+  remote_user: pi
+  vars_files:
+    - defaults/main.yml
+  
+  tasks:
+
+  - name: Create plex-monitor docker folder
+    become: yes
+    file:
+      path: /plex-monitor
+      state: directory
+      mode: '0777'
+
+  - name: Clone the plex docker repo
+    become: yes
+    git:
+      repo: https://github.com/fjacob21/plex-monitor-docker.git
+      dest: /plex-monitor
+  
+  - name: Create the configs.json file.
+    template:
+      src: templates/configs.json.j2
+      dest: /plex-monitor/configs.json
+  
+  - name: Stop Old Docker container
+    become: yes
+    shell: docker stop plex-monitor
+    ignore_errors: yes
+  
+  - name: Remove Old Docker container
+    become: yes
+    shell: docker rm plex-monitor
+    ignore_errors: yes
+  
+  - name: Remove Old Docker image
+    become: yes
+    shell: docker rmi plex-monitor
+    ignore_errors: yes
+
+  - name: Build plex monitor Docker images
+    become: yes
+    shell: docker build -t plex-monitor .
+    args:
+      chdir: /plex-monitor
+  
+  - name: Start plex monitor Docker images
+    become: yes
+    shell: ./start.sh
+    args:
+      chdir: /plex-monitor
+  
+  
