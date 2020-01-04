@@ -44,7 +44,7 @@
 
   - name: Build plex monitor Docker images
     become: yes
-    shell: docker build -t plex-monitor .
+    shell: docker build --no-cache -t plex-monitor .
     args:
       chdir: /plex-monitor
   
